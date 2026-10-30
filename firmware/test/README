@@ -1,0 +1,7 @@
+# Test zone 🧪✅
+
+Folder ini buat PlatformIO Test Runner dan unit test project.
+
+Unit test = ngecek bagian kecil code secara terpisah supaya bug ketahuan lebih awal, sebelum firmware naik ke ESP32 dan bikin hari jadi panjang 😅
+
+Dokumentasi resmi: https://docs.platformio.org/en/latest/advanced/unit-testing/index.html

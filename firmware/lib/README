@@ -1,0 +1,21 @@
+# Private libraries 📦🧩
+
+Taruh library custom project di sini. PlatformIO akan compile library-nya lalu link ke firmware secara otomatis ✨
+
+Satu library, satu folder:
+
+```text
+lib/
+└── nama_library/
+    ├── src/
+    ├── examples/
+    └── library.json  # optional
+```
+
+Contoh include dari `src/main.cpp`:
+
+```cpp
+#include <NamaLibrary.h>
+```
+
+PlatformIO Library Dependency Finder akan mencari dependency dari source code. Dokumentasi: https://docs.platformio.org/page/librarymanager/ldf.html

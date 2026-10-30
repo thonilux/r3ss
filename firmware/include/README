@@ -1,0 +1,22 @@
+# Header headquarters 🧠📌
+
+Taruh file header project (`.h`/`.hpp`) di sini. Header berisi deklarasi, macro, dan tipe data yang dipakai bareng oleh source di `src/`.
+
+Contoh:
+
+```cpp
+// include/config.h
+#pragma once
+
+#define MODBUS_PORT 502
+```
+
+Pakai di source:
+
+```cpp
+#include "config.h"
+```
+
+Satu perubahan di satu header akan dipakai semua source saat build ulang. Lebih rapi, lebih anti-copy-paste chaos 🧹✨
+
+Referensi GCC: https://gcc.gnu.org/onlinedocs/cpp/Header-Files.html
