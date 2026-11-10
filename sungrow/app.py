@@ -351,6 +351,20 @@ def _mqtt_publish(data: dict[str, Any]) -> None:
             _mqtt_log(f"Publish gagal: rc {result.rc}", "ERROR")
 
 
+def _mqtt_schedule_loop() -> None:
+    """Publish the latest telemetry exactly at every minute boundary."""
+    while True:
+        now = time.time()
+        next_minute = (int(now) // 60 + 1) * 60
+        time.sleep(max(0.01, next_minute - now))
+        with _cache_lock:
+            data = dict(_cache["data"]) if _cache["data"] is not None else None
+        if data is not None:
+            _mqtt_publish(data)
+        else:
+            _mqtt_log("PUBLISH dilewati: belum ada data Sungrow", "WARN")
+
+
 def get_cached_data() -> dict[str, Any]:
     with _cache_lock:
         if _cache["data"] is None:
@@ -366,7 +380,6 @@ def _poll_loop() -> None:
             _poll_state.update({"state": "polling", "started_at": started})
         try:
             data = _read_data()
-            _mqtt_publish(data)
             with _cache_lock:
                 _cache["timestamp"] = time.time()
                 _cache["data"] = data
@@ -395,6 +408,7 @@ def start_poller() -> None:
     if not _poller_started:
         _poller_started = True
         threading.Thread(target=_poll_loop, name="sungrow-poller", daemon=True).start()
+        threading.Thread(target=_mqtt_schedule_loop, name="mqtt-scheduler", daemon=True).start()
 
 
 @app.get("/")
