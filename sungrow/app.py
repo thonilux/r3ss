@@ -437,6 +437,7 @@ def index():
     .unit { color: #cbd5e1; font-size: 14px; margin-left: 4px; }
     .wide { grid-column: 1 / -1; }
     .terminal { background: #020617; border: 1px solid #334155; border-radius: 14px; padding: 14px 16px; margin-top: 14px; color: #86efac; font: 13px Consolas, monospace; min-height: 100px; max-height: 260px; overflow: auto; white-space: pre-wrap; }
+    .clockbar { display: flex; gap: 18px; flex-wrap: wrap; margin: 0 0 14px; color: #cbd5e1; font: 14px Consolas, monospace; }
     footer { color: #64748b; margin-top: 22px; font-size: 13px; }
   </style>
 </head>
@@ -449,6 +450,7 @@ def index():
       <div id="mqtt" class="sub" style="text-align:right;margin-top:8px">MQTT: ...</div>
     </div>
   </header>
+  <div class="clockbar"><span>Clock: <strong id="clock">--:--:--</strong></span><span>Next MQTT publish: <strong id="next-publish">--s</strong></span></div>
   <section class="grid">
     <div class="card"><div class="label">PV Power / Total DC</div><div class="value"><span id="pv">-</span><span class="unit">W</span></div></div>
     <div class="card"><div class="label">DC Active Energy</div><div class="value"><span id="dcenergy">-</span><span class="unit">kWh</span></div></div>
@@ -493,6 +495,11 @@ def index():
     mppt1i: 'mppt_1_current_a', mppt2v: 'mppt_2_voltage_v', mppt2i: 'mppt_2_current_a'
   };
   const fmt = v => typeof v === 'number' ? v.toLocaleString('id-ID', {maximumFractionDigits: 2}) : '-';
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent = now.toLocaleTimeString('id-ID', {hour12: false});
+    document.getElementById('next-publish').textContent = `${60 - now.getSeconds()}s`;
+  }
   async function refresh() {
     const status = document.getElementById('status');
     try {
@@ -521,7 +528,7 @@ def index():
       console.error(err);
     }
   }
-  refresh(); setInterval(refresh, 5000);
+  updateClock(); setInterval(updateClock, 250); refresh(); setInterval(refresh, 5000);
 </script>
 </body>
 </html>
