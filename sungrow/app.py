@@ -28,9 +28,7 @@ MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 MQTT_USER = os.getenv("MQTT_USER", "")
 MQTT_PASS = os.getenv("MQTT_PASS", "")
 MQTT_BOARD_ID = os.getenv("MQTT_BOARD_ID", "RB000000000000")
-MQTT_FW = os.getenv("MQTT_FW", "0.1.0")
 MQTT_TELEMETRY_TOPIC = f"ress/{MQTT_BOARD_ID}/telemetry"
-MQTT_STATUS_TOPIC = f"ress/{MQTT_BOARD_ID}/status"
 
 app = Flask(__name__)
 _cache: dict[str, Any] = {"timestamp": 0.0, "data": None}
@@ -308,22 +306,15 @@ def _mqtt_start() -> None:
         return
     with _cache_lock:
         _mqtt_state["state"] = "connecting"
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=MQTT_BOARD_ID)
+    # ClientID must differ from the real board (ESP32) to avoid session takeover.
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=f"{MQTT_BOARD_ID}-sim")
     client.username_pw_set(MQTT_USER, MQTT_PASS)
-    client.will_set(MQTT_STATUS_TOPIC, json.dumps({
-        "v": 1, "boardId": MQTT_BOARD_ID, "online": False,
-        "ts": int(time.time()), "fw": MQTT_FW,
-    }), qos=1, retain=True)
 
     def on_connect(_client, _userdata, _flags, reason_code, _properties=None):
         if reason_code == 0:
             _mqtt_log(f"Connected ke {MQTT_HOST}:{MQTT_PORT}")
             with _cache_lock:
                 _mqtt_state.update({"state": "connected", "last_connect_at": time.time(), "last_error": None})
-            client.publish(MQTT_STATUS_TOPIC, json.dumps({
-                "v": 1, "boardId": MQTT_BOARD_ID, "online": True,
-                "ts": int(time.time()), "fw": MQTT_FW,
-            }), qos=1, retain=True)
         else:
             _mqtt_log(f"Connect gagal: reason {reason_code}", "ERROR")
             with _cache_lock:
@@ -509,7 +500,7 @@ def index():
       const ms = result.mqtt_status || {};
       const progress = document.getElementById('progress');
       const log = document.getElementById('mqtt-log');
-      log.textContent = (ms.logs || []).join('\n') || 'Belum ada aktivitas MQTT';
+      log.textContent = (ms.logs || []).join('\\n') || 'Belum ada aktivitas MQTT';
       log.scrollTop = log.scrollHeight;
       document.getElementById('mqtt').textContent = `MQTT: ${ms.state || 'unknown'} · ${ms.broker || ''}`;
       if (ps.state === 'polling') progress.textContent = 'Sedang membaca register inverter...';
