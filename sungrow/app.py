@@ -48,6 +48,7 @@ _poll_state: dict[str, Any] = {
     "duration_seconds": None,
 }
 _mqtt_client: mqtt.Client | None = None
+_mqtt_seq = int(time.time())  # telemetry sequence, string in payload (same as ESP32 contract v3)
 _mqtt_state: dict[str, Any] = {
     "state": "disabled",
     "broker": f"{MQTT_HOST}:{MQTT_PORT}",
@@ -282,9 +283,12 @@ def _mqtt_payload(data: dict[str, Any]) -> dict[str, Any]:
         "active_import_energy": data.get("active_import_energy_kwh"),
         "backup_total_power": data.get("backup_total_power_w"),
     }
+    global _mqtt_seq
+    _mqtt_seq += 1
     return {
         "v": 3,
         "boardId": MQTT_BOARD_ID,
+        "seq": str(_mqtt_seq),
         "batch": [
             {
                 "d": "inv_sungrow",
